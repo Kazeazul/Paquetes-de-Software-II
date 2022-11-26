@@ -43,11 +43,11 @@ client = Client(scope=scope, creds=credentials)
 if 'gastos_cg' not in st.session_state:
     st.session_state.gastos_cg = Spread("Gastos CG", client=client).sheet_to_df().reset_index()
 if 'gastos_es' not in st.session_state:
-    st.session_state.gastos_cg = Spread("Gastos ES", client=client).sheet_to_df().reset_index()
+    st.session_state.gastos_es = Spread("Gastos ES", client=client).sheet_to_df().reset_index()
 if 'gastos_sl' not in st.session_state:
-    st.session_state.gastos_cg = Spread("Gastos SL", client=client).sheet_to_df().reset_index()
+    st.session_state.gastos_sl = Spread("Gastos SL", client=client).sheet_to_df().reset_index()
 if 'gastos_x' not in st.session_state:
-    st.session_state.gastos_cg = Spread("Gastos X", client=client).sheet_to_df().reset_index()
+    st.session_state.gastos_x = Spread("Gastos X", client=client).sheet_to_df().reset_index()
 #======================================================================================
 #======================================================================================
 def to_excel(df, sheet_name):
