@@ -6,7 +6,8 @@ import urllib.request
 import xlsxwriter
 import requests
 import io
-
+from google.oauth2.service_account import Credentials
+from gspread_pandas import Spread, Client
 #======================================================================================
 #======================================================================================
 URL = 'https://scontent.fgua1-3.fna.fbcdn.net/v/t1.18169-9/1660963_606924706060130_284056617_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=09cbfe&_nc_ohc=wnFMucwa0_kAX-Ph1TL&_nc_ht=scontent.fgua1-3.fna&oh=00_AfA8xCmc1P5H30p1a5oBEmHua_2wlhmU_ZU70HojSbDdBg&oe=63976B39'
