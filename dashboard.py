@@ -47,9 +47,19 @@ if 'gastos_sl' not in st.session_state:
     st.session_state.gastos_cg = Spread("Gastos SL", client=client).sheet_to_df().reset_index()
 if 'gastos_x' not in st.session_state:
     st.session_state.gastos_cg = Spread("Gastos X", client=client).sheet_to_df().reset_index()
-    
-st.dataframe(st.session_state.gastos_cg)
-
+#======================================================================================
+#======================================================================================
+def to_excel(df, sheet_name):
+    output = BytesIO()
+    writer = pd.ExcelWriter(output, engine = "xlsxwriter")
+    df.to_excel(writer, index = False, sheet_name = sheet_name)
+    workbook = writer.book
+    worksheet = writer.sheets[sheet_name]
+    format1 = workbook.add_format({'num_format': '0.00'}) 
+    worksheet.set_column('A:A', None, format1)  
+    writer.save()
+    processed_data = output.getvalue()
+    return processed_data
 #======================================================================================
 #======================================================================================
 st.sidebar.header("Conoce nuestra empresa")
