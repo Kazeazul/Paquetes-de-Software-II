@@ -23,3 +23,5 @@ hide_st_style = """
 #======================================================================================
 st.markdown(hide_st_style, unsafe_allow_html = True)
 st.image("https://i.imgur.com/HZDOve8.jpg")
+
+st.title("Bienvenido")
