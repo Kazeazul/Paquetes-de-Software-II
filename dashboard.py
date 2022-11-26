@@ -6,6 +6,7 @@ import urllib.request
 import xlsxwriter
 import requests
 import io
+from io import BytesIO
 from google.oauth2.service_account import Credentials
 from gspread_pandas import Spread, Client
 from pyxlsb import open_workbook as open_xlsb
