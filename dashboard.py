@@ -30,8 +30,13 @@ st.image("https://i.imgur.com/HZDOve8.jpg")
 url = "https://raw.githubusercontent.com/Kazeazul/Paquetes-de-Software-II/main/Gastos%20CG.csv"
 download = requests.get(url).content
 #======================================================================================
+#======================================================================================
+scope = ['https://spreadsheets.google.com/feeds',
+         'https://www.googleapis.com/auth/drive']
+credentials = Credentials.from_service_account_info(st.secrets["s_g"], scopes=scope)
+client = Client(scope=scope, creds=credentials)
 if 'gastos_cg' not in st.session_state:
-    st.session_state.gastos_cg = pd.read_csv(io.StringIO(download.decode('utf-8')))
+    st.session_state.gastos_cg = Spread("Gastos CG", client=client).sheet_to_df().reset_index()
+
     
 st.dataframe(st.session_state.gastos_cg)
-st.session_state.gastos_cg.to_csv("prueba.csv",index = False)
