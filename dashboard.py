@@ -26,4 +26,4 @@ st.image("https://i.imgur.com/HZDOve8.jpg")
 #======================================================================================
 
 st.title("Bienvenido")
-st.write(pd.read_csv("Gastos CG.csv", , encoding="utf8"))
+st.write(pd.read_csv("Gastos CG.csv", encoding="utf8"))
