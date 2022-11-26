@@ -34,4 +34,4 @@ if 'gastos_cg' not in st.session_state:
     st.session_state.gastos_cg = pd.read_csv(io.StringIO(download.decode('utf-8')))
     
 st.dataframe(st.session_state.gastos_cg)
-st.session_state.gastos_cg.to_csv(index = False)
+st.session_state.gastos_cg.to_csv("prueba.csv",index = False)
