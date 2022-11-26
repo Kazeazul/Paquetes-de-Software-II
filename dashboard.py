@@ -39,16 +39,22 @@ scope = ['https://spreadsheets.google.com/feeds',
 credentials = Credentials.from_service_account_info(st.secrets["s_g"], scopes=scope)
 client = Client(scope=scope, creds=credentials)
 #======================================================================================
-#======================================================================================
-#Cargando datos
 if 'gastos_cg' not in st.session_state:
-    st.session_state.gastos_cg = Spread("Gastos CG", client=client).sheet_to_df().reset_index()
-if 'gastos_es' not in st.session_state:
-    st.session_state.gastos_es = Spread("Gastos ES", client=client).sheet_to_df().reset_index()
-if 'gastos_sl' not in st.session_state:
-    st.session_state.gastos_sl = Spread("Gastos SL", client=client).sheet_to_df().reset_index()
+    st.session_state.gastos_cg = Spread("Gastos CG", client=client)
+#======================================================================================
 if 'gastos_x' not in st.session_state:
-    st.session_state.gastos_x = Spread("Gastos X", client=client).sheet_to_df().reset_index()
+    st.session_state.gastos_x = Spread("Gastos X", client=client)
+#======================================================================================
+if 'gastos_sl' not in st.session_state:
+    st.session_state.gastos_sl = Spread("Gastos SL", client=client)
+#======================================================================================
+if 'gastos_es' not in st.session_state:
+    st.session_state.gastos_es = Spread("Gastos ES", client=client)
+#======================================================================================
+df_gastos_cg = st.session_state.gastos_cg.sheet_to_df().reset_index()
+df_gastos_x = st.session_state.gastos_x.sheet_to_df().reset_index()
+df_gastos_sl = st.session_state.gastos_sl.sheet_to_df().reset_index()
+df_gastos_es = st.session_state.gastos_es.sheet_to_df().reset_index()
 #======================================================================================
 #======================================================================================
 def to_excel(df, sheet_name):
@@ -66,6 +72,7 @@ def to_excel(df, sheet_name):
 #======================================================================================
 st.sidebar.header("Conoce nuestra empresa")
 control_conoce = st.sidebar.selectbox("¿Qué deseas conocer?", ["Misión y visión","Ubicaciones y más...", "Empleados","Proveedores"])
+
 mi_vi = st.expander("Conocenos...", expanded = True)
 if control_conoce == "Misión y visión":
     with mi_vi:
@@ -74,6 +81,7 @@ if control_conoce == "Misión y visión":
 ###### 2. Crear un espacio virtual para generar empleos por medio de nuestra cadena de Supermercados.""")
         st.markdown("# :smile_cat: Visión")
         st.markdown("""###### Construir una cadena de supermercados en línea para proveer productos de forma local y expandirnos a nivel regional donde los productos guatemaltecos puedan prosperar y ser reconocidos por su calidad.""")
+        
 elif control_conoce == "Ubicaciones y más...":
     with mi_vi:
         st.markdown("# :earth_americas: Ubicaciones, contacto y horarios de atención")
@@ -92,30 +100,41 @@ elif control_conoce == "Ubicaciones y más...":
             st.markdown("***")
             if st.checkbox("Mostrar u ocultar descripción y gastos"):
                 st.markdown("#### Gastos mantenimiento de local")
-                with st.form("my_form"):
-                    action = st.radio("Acción", ["Nuevo gasto", "Modificar gasto"])
-                    g_1, g_2 = st.columns([1,1])
-                    with g_1:
-                        if action == "Nuevo gasto":
-                            nombre_ng = st.text_input("Categoría")
-                    with g_2:
-                        if action == "Nuevo gasto":
-                            monto_ng = st.number_input("Monto [Q]")
-                    submitted = st.form_submit_button("Guardar")
-                    if submitted:
-                        if action == "Nuevo gasto":
-                            df_new = pd.DataFrame([[nombre_ng,"Q"+str(monto_ng)]], columns = ["Categoría", "Monto [Q]"])
-                            df_guardar = pd.concat([df_new, st.session_state.gastos_cg], axis = 0)
-                            Spread("Gastos CG", client=client).df_to_sheet(df_guardar, index = false)
+                action = st.radio("Acción", ["Nuevo gasto", "Modificar gasto"])
+                g_1, g_2 = st.columns([1,1])
+                with g_1:
+                    if action == "Nuevo gasto":
+                        nombre_ng = st.text_input("Categoría")
+                    elif action == "Modificar gasto":
+                        nombre_ng = st.selectbox("Categoría", (df_gastos_cg["Categoría"]))
+                with g_2:
+                    if action == "Nuevo gasto":
+                        monto_ng = st.number_input("Monto [Q]")
+                    elif action == "Modificar gasto":
+                        monto_ng = st.number_input("Monto [Q]")
+                if st.button("Guardar"):
+                    if action == "Nuevo gasto":
+                        df_new = pd.DataFrame([[nombre_ng,"Q"+str(monto_ng)]], columns = ["Categoría", "Monto [Q]"])
+                        df_guardar = pd.concat([df_new, df_gastos_cg], axis = 0).reset_index(drop = True)
+                        Spread("Gastos CG", client=client).df_to_sheet(df_guardar, index = False)
+                        df_gastos_cg = Spread("Gastos CG", client=client).sheet_to_df().reset_index()
+                    elif action == "Modificar gasto":
+                        df_new = pd.DataFrame([[nombre_ng,"Q"+str(monto_ng)]], columns = ["Categoría", "Monto [Q]"])
+                        df_gastos_cg = df_gastos_cg.drop(df_gastos_cg[df_gastos_cg["Categoría"] == nombre_ng].index)
+                        df_guardar = pd.concat([df_new, df_gastos_cg], axis = 0).reset_index(drop = True)
+                        Spread("Gastos CG", client=client).df_to_sheet(df_guardar, index = False)
+                        df_gastos_cg = Spread("Gastos CG", client=client).sheet_to_df().reset_index()
                 gcg_1, gcg_3, gcg_2 = st.columns([2,0.3,1])
-                df_xlsx = to_excel(st.session_state.gastos_cg, "Gastos ubicación - CG")
+                
+                df_xlsx = to_excel(df_gastos_cg, "Gastos ubicación - CG")
+                    
+                gcg_1, gcg_3, gcg_2 = st.columns([2,0.3,1])
                 with gcg_1:
-                    st.dataframe(st.session_state.gastos_cg.style.hide_index().set_precision(2).background_gradient(), use_container_width = True)
+                    st.dataframe(df_gastos_cg.style.hide_index().set_precision(2).background_gradient(), use_container_width = True)
                 with gcg_2:
                     st.markdown("###### Estrategía ubicación: El local se encuentra ubicado en una zona bastante céntrica y el centro comercial es concurrido, alrededor de la zona hay varias bodegas y zonas residenciales.")
                     st.markdown("#### Total gastos:")
-                    #df['Sales'] = df['Sales'].replace({'\$': '', ',': ''}, regex=True).astype(float)
-                    st.markdown("##### Q"+str(sum(st.session_state.gastos_cg["Monto [Q]"].str.replace(',','').str.replace('Q','').astype('float'))))
+                    st.markdown("##### Q"+str(sum(df_gastos_cg["Monto [Q]"].str.replace(',','').str.replace('Q','').astype('float'))))
                     st.download_button(label='📥 Descargar tabla', data=df_xlsx,file_name= 'gastos_cg.xlsx')
         elif location == "Xela":
             u_1 = pd.DataFrame([[14.83472, -91.51806]], columns = ["lat","lon"])
@@ -129,14 +148,39 @@ elif control_conoce == "Ubicaciones y más...":
             st.markdown("***")
             if st.checkbox("Mostrar u ocultar descripción y gastos"):
                 st.markdown("#### Gastos mantenimiento de local")
+                action = st.radio("Acción", ["Nuevo gasto", "Modificar gasto"])
+                g_1, g_2 = st.columns([1,1])
+                with g_1:
+                    if action == "Nuevo gasto":
+                        nombre_ng = st.text_input("Categoría")
+                    elif action == "Modificar gasto":
+                        nombre_ng = st.selectbox("Categoría", (df_gastos_x["Categoría"]))
+                with g_2:
+                    if action == "Nuevo gasto":
+                        monto_ng = st.number_input("Monto [Q]")
+                    elif action == "Modificar gasto":
+                        monto_ng = st.number_input("Monto [Q]")
+                if st.button("Guardar"):
+                    if action == "Nuevo gasto":
+                        df_new = pd.DataFrame([[nombre_ng,"Q"+str(monto_ng)]], columns = ["Categoría", "Monto [Q]"])
+                        df_guardar = pd.concat([df_new, df_gastos_x], axis = 0).reset_index(drop = True)
+                        Spread("Gastos X", client=client).df_to_sheet(df_guardar, index = False)
+                        df_gastos_x = Spread("Gastos X", client=client).sheet_to_df().reset_index()
+                    elif action == "Modificar gasto":
+                        df_new = pd.DataFrame([[nombre_ng,"Q"+str(monto_ng)]], columns = ["Categoría", "Monto [Q]"])
+                        df_gastos_x = df_gastos_x.drop(df_gastos_x[df_gastos_x["Categoría"] == nombre_ng].index)
+                        df_guardar = pd.concat([df_new, df_gastos_x], axis = 0).reset_index(drop = True)
+                        Spread("Gastos X", client=client).df_to_sheet(df_guardar, index = False)
+                        df_gastos_x = Spread("Gastos X", client=client).sheet_to_df().reset_index()
+                
                 gcg_1, gcg_3, gcg_2 = st.columns([2,0.3,1])
-                df_xlsx = to_excel(gastos_x, "Gastos ubicación - X")
+                df_xlsx = to_excel(df_gastos_x, "Gastos ubicación - X")
                 with gcg_1:
-                    st.dataframe(gastos_x.style.hide_index().set_precision(2).background_gradient(), use_container_width = True)
+                    st.dataframe(df_gastos_x.style.hide_index().set_precision(2).background_gradient(), use_container_width = True)
                 with gcg_2:
                     st.markdown("###### Estrategía ubicación: El local se encuentra ubicado en una zona bastante céntrica y el centro comercial es concurrido, alrededor de la zona hay varias bodegas y zonas residenciales.")
                     st.markdown("#### Total gastos:")
-                    st.markdown("##### Q"+str(sum(gastos_x["Monto [Q]"])))
+                    st.markdown("##### Q"+str(sum(df_gastos_x["Monto [Q]"].str.replace(',','').str.replace('Q','').astype('float'))))
                     st.download_button(label='📥 Descargar tabla', data=df_xlsx,file_name= 'gastos_x.xlsx')
         elif location == "San Lucas":
             u_1 = pd.DataFrame([[14.61075, -90.65681]], columns = ["lat","lon"])
@@ -150,15 +194,40 @@ elif control_conoce == "Ubicaciones y más...":
             st.markdown("***")
             if st.checkbox("Mostrar u ocultar descripción y gastos"):
                 st.markdown("#### Gastos mantenimiento de local")
+                action = st.radio("Acción", ["Nuevo gasto", "Modificar gasto"])
+                g_1, g_2 = st.columns([1,1])
+                with g_1:
+                    if action == "Nuevo gasto":
+                        nombre_ng = st.text_input("Categoría")
+                    elif action == "Modificar gasto":
+                        nombre_ng = st.selectbox("Categoría", (df_gastos_sl["Categoría"]))
+                with g_2:
+                    if action == "Nuevo gasto":
+                        monto_ng = st.number_input("Monto [Q]")
+                    elif action == "Modificar gasto":
+                        monto_ng = st.number_input("Monto [Q]")
+                if st.button("Guardar"):
+                    if action == "Nuevo gasto":
+                        df_new = pd.DataFrame([[nombre_ng,"Q"+str(monto_ng)]], columns = ["Categoría", "Monto [Q]"])
+                        df_guardar = pd.concat([df_new, df_gastos_sl], axis = 0).reset_index(drop = True)
+                        Spread("Gastos SL", client=client).df_to_sheet(df_guardar, index = False)
+                        df_gastos_sl = Spread("Gastos SL", client=client).sheet_to_df().reset_index()
+                    elif action == "Modificar gasto":
+                        df_new = pd.DataFrame([[nombre_ng,"Q"+str(monto_ng)]], columns = ["Categoría", "Monto [Q]"])
+                        df_gastos_sl = df_gastos_sl.drop(df_gastos_sl[df_gastos_sl["Categoría"] == nombre_ng].index)
+                        df_guardar = pd.concat([df_new, df_gastos_sl], axis = 0).reset_index(drop = True)
+                        Spread("Gastos SL", client=client).df_to_sheet(df_guardar, index = False)
+                        df_gastos_sl = Spread("Gastos SL", client=client).sheet_to_df().reset_index()
+                
                 gcg_1, gcg_3, gcg_2 = st.columns([2,0.3,1])
-                df_xlsx = to_excel(gastos_sl, "Gastos ubicación - SL")
+                df_xlsx = to_excel(df_gastos_sl, "Gastos ubicación - SL")
                 with gcg_1:
-                    st.dataframe(gastos_sl.style.hide_index().set_precision(2).background_gradient(), use_container_width = True)
+                    st.dataframe(df_gastos_sl.style.hide_index().set_precision(2).background_gradient(), use_container_width = True)
                 with gcg_2:
                     st.markdown("###### Estrategía ubicación: El local se encuentra ubicado en una zona bastante céntrica y el centro comercial es concurrido, alrededor de la zona hay varias bodegas y zonas residenciales.")
                     st.markdown("#### Total gastos:")
-                    st.markdown("##### Q"+str(sum(gastos_sl["Monto [Q]"])))
-                    st.download_button(label='📥 Descargar tabla', data=df_xlsx,file_name= 'gastos_sl.xlsx')
+                    st.markdown("##### Q"+str(sum(df_gastos_sl["Monto [Q]"].str.replace(',','').str.replace('Q','').astype('float'))))
+                    st.download_button(label='📥 Descargar tabla', data=df_xlsx,file_name= 'gastos_x.xlsx')
         elif location == "Escuintla":
             u_1 = pd.DataFrame([[14.3009, -90.78581]], columns = ["lat","lon"])
             co_2.map(u_1, zoom = 5, use_container_width=True)
@@ -171,14 +240,39 @@ elif control_conoce == "Ubicaciones y más...":
             st.markdown("***")
             if st.checkbox("Mostrar u ocultar descripción y gastos"):
                 st.markdown("#### Gastos mantenimiento de local")
+                action = st.radio("Acción", ["Nuevo gasto", "Modificar gasto"])
+                g_1, g_2 = st.columns([1,1])
+                with g_1:
+                    if action == "Nuevo gasto":
+                        nombre_ng = st.text_input("Categoría")
+                    elif action == "Modificar gasto":
+                        nombre_ng = st.selectbox("Categoría", (df_gastos_es["Categoría"]))
+                with g_2:
+                    if action == "Nuevo gasto":
+                        monto_ng = st.number_input("Monto [Q]")
+                    elif action == "Modificar gasto":
+                        monto_ng = st.number_input("Monto [Q]")
+                if st.button("Guardar"):
+                    if action == "Nuevo gasto":
+                        df_new = pd.DataFrame([[nombre_ng,"Q"+str(monto_ng)]], columns = ["Categoría", "Monto [Q]"])
+                        df_guardar = pd.concat([df_new, df_gastos_es], axis = 0).reset_index(drop = True)
+                        Spread("Gastos ES", client=client).df_to_sheet(df_guardar, index = False)
+                        df_gastos_es = Spread("Gastos ES", client=client).sheet_to_df().reset_index()
+                    elif action == "Modificar gasto":
+                        df_new = pd.DataFrame([[nombre_ng,"Q"+str(monto_ng)]], columns = ["Categoría", "Monto [Q]"])
+                        df_gastos_es = df_gastos_es.drop(df_gastos_es[df_gastos_es["Categoría"] == nombre_ng].index)
+                        df_guardar = pd.concat([df_new, df_gastos_es], axis = 0).reset_index(drop = True)
+                        Spread("Gastos ES", client=client).df_to_sheet(df_guardar, index = False)
+                        df_gastos_es = Spread("Gastos ES", client=client).sheet_to_df().reset_index()
+                
                 gcg_1, gcg_3, gcg_2 = st.columns([2,0.3,1])
+                df_xlsx = to_excel(df_gastos_es, "Gastos ubicación - ES")
                 with gcg_1:
-                    st.dataframe(gastos_es.style.hide_index().set_precision(2).background_gradient(), use_container_width = True)
+                    st.dataframe(df_gastos_es.style.hide_index().set_precision(2).background_gradient(), use_container_width = True)
                 with gcg_2:
                     st.markdown("###### Estrategía ubicación: El local se encuentra ubicado en una zona bastante céntrica y el centro comercial es concurrido, alrededor de la zona hay varias bodegas y zonas residenciales.")
                     st.markdown("#### Total gastos:")
-                    
-                    st.markdown("##### Q"+str(sum(gastos_es["Monto [Q]"])))
+                    st.markdown("##### Q"+str(sum(df_gastos_es["Monto [Q]"].str.replace(',','').str.replace('Q','').astype('float'))))
                     st.download_button(label='📥 Descargar tabla', data=df_xlsx,file_name= 'gastos_es.xlsx')
 elif control_conoce == "Empleados":
     with mi_vi:
@@ -209,4 +303,3 @@ elif control == "Verificación de datos cliente":
     with search_user:
         c_1, c_2, c_3 = st.columns(3)
         busqueda = st.selectbox("Método de búsqueda", ["Correo electrónico","ID cliente",""])
-#        id_cliente st.selectbox()
