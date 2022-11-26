@@ -6,6 +6,7 @@ numpy
 xlsxwriter
 requests
 urllib3
+pyxlsb
 google-auth-oauthlib==0.4.6
 google-auth==2.3.3
 gspread-pandas==2.2.3
