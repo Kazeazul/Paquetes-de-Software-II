@@ -31,7 +31,4 @@ url = "https://raw.githubusercontent.com/Kazeazul/Paquetes-de-Software-II/main/G
 download = requests.get(url).content
 #======================================================================================
 if 'gastos_cg' not in st.session_state:
-    st.session_state.gastos_cg = pd.read_csv("Gastos CG/csv")
-
-st.title("Bienvenido")
-st.write(st.session_state.gastos_cg)
+    st.session_state.gastos_cg = pd.read_csv(io.StringIO(download.decode('utf-8')))
