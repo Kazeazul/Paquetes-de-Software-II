@@ -32,3 +32,5 @@ download = requests.get(url).content
 #======================================================================================
 if 'gastos_cg' not in st.session_state:
     st.session_state.gastos_cg = pd.read_csv(io.StringIO(download.decode('latin-1')))
+    
+st.write(st.session_state.gastos_cg)
