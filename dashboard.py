@@ -171,7 +171,7 @@ elif control_conoce == "Ubicaciones y más...":
             if st.checkbox("Mostrar u ocultar descripción y gastos"):
                 st.markdown("#### Gastos mantenimiento de local")
                 gcg_1, gcg_3, gcg_2 = st.columns([2,0.3,1])
-                df_xlsx = to_excel(gastos_es, "Gastos ubicación - ES")
+                #df_xlsx = to_excel(gastos_es, "Gastos ubicación - ES")
                 with gcg_1:
                     st.dataframe(gastos_es.style.hide_index().set_precision(2).background_gradient(), use_container_width = True)
                 with gcg_2:
